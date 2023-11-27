@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  vlp-db:
+    image: mysql
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: vlp
+      MYSQL_USER: vlp
+      MYSQL_PASSWORD: vlp
+    ports:
+      - "3306:3306"
+    networks:
+      - vlp-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+  vlp-backend:
+    container_name: vlp-backend
+    image: ivannicksim/vlp-backend:latest
+    ports:
+      - "34100:34100"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - vlp-db
+    networks:
+      - vlp-network
+  vlp-ui:
+    image: ivannicksim/vlp-ui:latest
+    container_name: vlp-ui
+    ports:
+      - "4200:4200"
+    networks:
+      - vlp-network
+    depends_on:
+      - vlp-backend
+
+networks:
+  vlp-network:
+    driver: bridge
+
+volumes:
+  mysql-data:

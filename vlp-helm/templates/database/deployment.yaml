@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.database.name }}
+  labels:
+    app: {{ .Values.database.name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.database.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.database.name }}
+    spec:
+      volumes:
+        - name: {{ .Values.database.volume.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.database.volume.pvc.name }}
+      containers:
+        - name:  {{ .Values.database.name }}
+          image: {{ .Values.database.container.image }}
+          ports:
+            - containerPort: {{ .Values.database.container.port }}
+          env:
+            {{- range .Values.database.container.env }}
+            - name: {{ .key }}
+              value: {{ .value }}
+            {{- end }}
+          volumeMounts:
+            - name: {{ .Values.database.volume.name }}
+              mountPath: {{ .Values.database.volume.mountPath }}
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}

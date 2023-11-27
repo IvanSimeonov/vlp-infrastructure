@@ -1,0 +1,77 @@
+replicaCount: 1
+
+resources:
+  limits:
+    cpu: 1090m
+    memory: 512Mi
+  requests:
+    cpu: 50m
+    memory: 128Mi
+
+database:
+  name: mysql
+  container:
+    image: mysql:latest
+    port: 3306
+    env:
+      - key: MYSQL_ROOT_PASSWORD
+        value: root
+      - key: MYSQL_DATABASE
+        value: vlp
+      - key: MYSQL_USER
+        value: vlp
+      - key: MYSQL_PASSWORD
+        value: vlp
+  service:
+    type: ClusterIP
+    port: 3306
+  volume:
+    name: mysql-storage
+    kind: PersistentVolumeClaim
+    mountPath: /var/lib/mysql
+    pvc:
+      name: mysql-persistent-volume-claim
+      accessMode: ReadWriteOnce
+      storage: 20Gi
+
+backend:
+  name: vlp-backend
+  container:
+    image: ivannicksim/vlp-backend:latest
+    port: 34100
+    env:
+      - key: SPRING_PROFILES_ACTIVE
+        value: kubernetes
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:mysql://mysql:3306/vlp?useSSL=true&createDatabaseIfNotExist=true&serverTimezone=UTC
+      - key: SPRING_DATASOURCE_USERNAME
+        value: vlp
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: vlp
+  service:
+    type: ClusterIP
+    port: 34100
+
+frontend:
+  name: vlp-ui
+  container:
+    image: ivannicksim/vlp-ui:latest
+    port: 4200
+  service:
+    type: NodePort
+    ports:
+      port: 4200
+      targetPort: 4200
+      nodePort: 32000
+
+ingress:
+  name: ingress-service
+  annotations:
+    class: nginx
+  hosts:
+    - host: vlp.k8s.com
+      paths:
+        - path: /
+          backend:
+            serviceName: vlp-ui
+            servicePort: 4200
