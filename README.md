@@ -89,7 +89,7 @@ Before you begin, ensure that you have started the Docker Desktop application.
 - Start Minikube
 
 ```bash
-minikube start
+minikube start --driver=docker --ports=31000:32000
 ```
 
 - Get IP Address of the minikube cluster
@@ -108,6 +108,7 @@ minikube ip
 - Add the IP to the hosts file:
 
 ```
+127.0.0.1       localhost vlp.k8s.com
 192.168.49.2 vlp.k8s.com
 ```
 
